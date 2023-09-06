@@ -82,7 +82,25 @@ class Weather extends Component {
     }
 
     changeWeatherCode = (weatherArr) => {
-
+        const changedWeatherArr = [];
+        for(const weather of weatherArr){
+            if((weather >= 0 && weather <= 12) || (weather >= 37 && weather <= 40) || (weather === 35 || weather === 45 || weather === 47)){
+                changedWeatherArr.push("rainy");
+            }
+            else if((weather >= 19 && weather <= 24) || (weather >= 26 && weather <= 30)){
+                changedWeatherArr.push("cloudy");
+            }
+            else if((weather >= 31 && weather <= 34) || (weather == 36)){
+                changedWeatherArr.push("sunny");
+            }
+            else if((weather >= 13 && weather <= 18) || (weather >= 41 && weather <= 43) || (weather === 25 || weather === 46)){
+                changedWeatherArr.push("snowy");
+            }
+            else{
+                changedWeatherArr.push("error");
+            }
+        }
+        return changedWeatherArr;
     }
 
 
@@ -99,7 +117,7 @@ class Weather extends Component {
 
         const temperatureData = this.findMean(this.mkarray(weatherData.temperature));
         const humidityData = this.findMean(this.mkarray(weatherData.relativeHumidity));
-        const weathericData = this.findMost(this.mkarray(weatherData.iconCode));
+        const weathericData = this.changeWeatherCode(this.findMost(this.mkarray(weatherData.iconCode)));
 
         
         return (
