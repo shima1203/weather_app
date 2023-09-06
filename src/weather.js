@@ -28,15 +28,16 @@ class Weather extends Component {
         });
     }
         
+    // 24ごとに区切って2次元配列にする
     mkarray = (oneDArray) => {
         const twoDArray = [];
         for (let i = 0; i < oneDArray.length; i+=24) {
             twoDArray.push(oneDArray.slice(i, i +24));
         }
-        console.log(twoDArray);
         return twoDArray;
     }
 
+    // 2次元配列の各列の平均値をとる
     findMean = (oriArray) => {
         const meanArray = [];
         const numRows = oriArray.length;
@@ -51,10 +52,38 @@ class Weather extends Component {
             const roundedAverage = parseFloat(average.toFixed(1));
             meanArray.push(roundedAverage);
         }
-        console.log(meanArray);
         return meanArray;
     }
 
+    // 最も出現頻度が高いものを探す
+    findMost = (oriArray) => {
+        const mostEleArray = [];
+        for (const column of oriArray){
+            const elementCount = {};
+            for (const value of column) {
+                if (elementCount[value]) {
+                elementCount[value]++;
+                } else {
+                elementCount[value] = 1;
+                }   
+            }
+            let mostEle = null;
+            let maxCount = 0;
+            for (const value in elementCount) {
+                if (elementCount[value] > maxCount) {
+                maxCount = elementCount[value];
+                mostEle = value;
+                }
+            }
+            mostEleArray.push(mostEle);
+        }
+        
+        return mostEleArray;
+    }
+
+    changeWeatherCode = (weatherArr) => {
+
+    }
 
 
     render() {
@@ -68,25 +97,34 @@ class Weather extends Component {
             return <div>Loading...</div>;
         }
 
+        const temperatureData = this.findMean(this.mkarray(weatherData.temperature));
+        const humidityData = this.findMean(this.mkarray(weatherData.relativeHumidity));
+        const weathericData = this.findMost(this.mkarray(weatherData.iconCode));
+
         
         return (
             <div>
                 <table>
                     <thead>
                         <tr>
-                            <td>temparature</td>
+                            <th>data</th>
+                            <th>temparature</th>
+                            <th>humidity</th>
+                            <th>weather</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {this.findMean(this.mkarray(weatherData.temperature)).map((temp, date) => (
-                            <tr key={date}>{date + 1} : {temp}</tr>
+                        {temperatureData.map((temp, date) => (
+                            <tr key={date + 1}>
+                                <td>{date + 1}</td>
+                                <td>{temp}</td>
+                                <td>{humidityData[date]}</td>
+                                <td>{weathericData[date]}</td>
+                            </tr>
                         )
                     )}
                     </tbody>
                 </table>
-
-                <p>Humidity: {weatherData.relativeHumidity}</p>
-                <p>Weather: {weatherData.iconCode}</p>
             </div>
         );
     }
