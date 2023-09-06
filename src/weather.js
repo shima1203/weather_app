@@ -10,7 +10,7 @@ class Weather extends Component {
 
     componentDidMount() {
         const apiUrl1 = 'https://api.weather.com/v3/wx/forecast/hourly/15day?geocode=35.65,135.79&format=json&units=m&language=jaJP&apiKey=7698370dea91420198370dea91720199';
-        const apiUrl2 = 'https://api.weather.com/v3/wx/hod/r1/direct?geocode=35.65,135.79&startDateTime=2022-11-01T00Z&endDateTime=2022-11-10T00Z&format=json&units=m&apiKey=7698370dea91420198370dea91720199';
+        const apiUrl2 = 'https://api.weather.com/v3/wx/hod/r1/direct?geocode=35.65,135.79&startDateTime=2022-11-01T00Z&endDateTime=2022-12-01T00Z&format=json&units=m&apiKey=7698370dea91420198370dea91720199';
 
         fetch(apiUrl2)
         .then((response) => {
@@ -30,12 +30,32 @@ class Weather extends Component {
         
     mkarray = (oneDArray) => {
         const twoDArray = [];
-        for (let i = 0; i < 9; i++) {
-            twoDArray.push(oneDArray.slice(i*12, (i + 1) * 12));
+        for (let i = 0; i < oneDArray.length; i+=24) {
+            twoDArray.push(oneDArray.slice(i, i +24));
         }
-        console.log(twoDArray)
+        console.log(twoDArray);
         return twoDArray;
     }
+
+    findMean = (oriArray) => {
+        const meanArray = [];
+        const numRows = oriArray.length;
+        const numCols = oriArray[0].length;
+        
+        for (let i = 0; i < numRows; i++){
+            let columnSum = 0;
+            for(let j = 0; j < numCols; j++){
+                columnSum += oriArray[i][j];
+            }
+            const average = columnSum / numCols;
+            const roundedAverage = parseFloat(average.toFixed(1));
+            meanArray.push(roundedAverage);
+        }
+        console.log(meanArray);
+        return meanArray;
+    }
+
+
 
     render() {
         const { weatherData, error } = this.state;
@@ -51,8 +71,19 @@ class Weather extends Component {
         
         return (
             <div>
-                <h1>Weather Information</h1>
-                <p>Temperature: {this.mkarray(weatherData.temperature)}</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <td>temparature</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {this.findMean(this.mkarray(weatherData.temperature)).map((temp, date) => (
+                            <tr key={date}>{date + 1} : {temp}</tr>
+                        )
+                    )}
+                    </tbody>
+                </table>
 
                 <p>Humidity: {weatherData.relativeHumidity}</p>
                 <p>Weather: {weatherData.iconCode}</p>
