@@ -81,6 +81,7 @@ class Weather extends Component {
         return mostEleArray;
     }
 
+    // ウェザーコードを変換
     changeWeatherCode = (weatherArr) => {
         const changedWeatherArr = [];
         for(const weather of weatherArr){
@@ -103,6 +104,20 @@ class Weather extends Component {
         return changedWeatherArr;
     }
 
+    // 天気の数を数え上げる
+    countWeather = (weatherArr) => {
+        const countedWeatherArr = {};
+        for(const weather of weatherArr){
+            if(countedWeatherArr[weather]){
+                countedWeatherArr[weather] += 1;
+            }
+            else{
+                countedWeatherArr[weather] = 1;
+            }
+        }
+        return countedWeatherArr;
+    }
+
 
     render() {
         const { weatherData, error } = this.state;
@@ -118,32 +133,43 @@ class Weather extends Component {
         const temperatureData = this.findMean(this.mkarray(weatherData.temperature));
         const humidityData = this.findMean(this.mkarray(weatherData.relativeHumidity));
         const weathericData = this.changeWeatherCode(this.findMost(this.mkarray(weatherData.iconCode)));
-
+        const weatherCount = this.countWeather(weathericData);
         
         return (
             <div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>data</th>
-                            <th>temparature</th>
-                            <th>humidity</th>
-                            <th>weather</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {temperatureData.map((temp, date) => (
-                            <tr key={date + 1}>
-                                <td>{date + 1}</td>
-                                <td>{temp}</td>
-                                <td>{humidityData[date]}</td>
-                                <td>{weathericData[date]}</td>
+                <div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>data</th>
+                                <th>temparature</th>
+                                <th>humidity</th>
+                                <th>weather</th>
                             </tr>
-                        )
-                    )}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {temperatureData.map((temp, date) => (
+                                <tr key={date + 1}>
+                                    <td>{date + 1}</td>
+                                    <td>{temp}</td>
+                                    <td>{humidityData[date]}</td>
+                                    <td>{weathericData[date]}</td>
+                                </tr>
+                            )
+                        )}
+                        </tbody>
+                    </table>
+                </div>
+                <div>
+                <ul>
+                    {Object.keys(weatherCount).map((count, index) => (
+                        <li key={index}>
+                            {count}: {weatherCount[count]}
+                        </li>
+                    ))}
+                </ul>
             </div>
+        </div>
         );
     }
 }
