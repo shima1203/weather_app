@@ -46,8 +46,9 @@ class Weather extends Component {
         return (
             <div>
                 <h1>Weather Information</h1>
-                <p>Temperature: {weatherData.temperature} °C</p>
-                <p>Conditions: {weatherData.conditions}</p>
+                <p>Temperature: {weatherData.temperature}</p>
+                <p>Humidity: {weatherData.temperature}</p>
+                <p>Weather: {weatherData.conditions}</p>
             </div>
         );
     }
