@@ -7,7 +7,8 @@ class Weather extends Component {
         this.state = {
             weatherDataMonth: null,
             weatherDataToday: null,
-            selectedOption: '',
+            selectedLocation: '',
+            selectedMonth: 11,
             longitude:'139.69',
             latitude:'35.68',
             error: null,
@@ -24,12 +25,13 @@ class Weather extends Component {
         const month = String(todayData.getMonth() + 1).padStart(2, '0');
         const today = String(todayData.getDate()).padStart(2, '0');
         const yesterday = String(todayData.getDate() - 1).padStart(2, '0');
-        console.log(process.env.REACT_APP_API_URL);
+        const selectedMonthSt = String(this.state.selectedMonth).padStart(2, '0');
+        const selectedMonthStB = String(this.state.selectedMonth - 1).padStart(2, '0');
 
-        const apiUrl11m = process.env.REACT_APP_API_URL+`?geocode=${this.state.latitude},${this.state.longitude}&startDateTime=2022-10-31T15Z&endDateTime=2022-11-31T15Z&format=json&units=m&apiKey=`+process.env.REACT_APP_API_KEY;
+        const apiUrl11m = process.env.REACT_APP_API_URL+`?geocode=${this.state.latitude},${this.state.longitude}&startDateTime=2022-${selectedMonthStB}-31T15Z&endDateTime=2022-${selectedMonthSt}-31T15Z&format=json&units=m&apiKey=`+process.env.REACT_APP_API_KEY;
         const apiUrlToday = process.env.REACT_APP_API_URL+`?geocode=${this.state.latitude},${this.state.longitude}&startDateTime=${year}-${month}-${yesterday}T15Z&endDateTime=${year}-${month}-${today}T15Z&format=json&units=m&apiKey=`+process.env.REACT_APP_API_KEY;
         
-        // 11月のデータ
+        // 11月の天気データ
         fetch(apiUrl11m)
         .then((response) => {
             if (!response.ok) {
@@ -39,7 +41,6 @@ class Weather extends Component {
         })
         .then((data) => {
             this.setState({ weatherDataMonth: data });
-            console.log('Weather Data Month:', data);
         })
         .catch((error) => {
             this.setState({ error: error });
@@ -55,33 +56,45 @@ class Weather extends Component {
         })
         .then((data) => {
             this.setState({ weatherDataToday: data });
-            console.log('Weather Data Today:', data);
         })
         .catch((error) => {
             this.setState({ error: error });
         });
     }
 
-    handleOptionChange = (selectedOption) => {
+    // ドロップダウン選択時(座標変更)
+    handleLocationChange = (selectedLocation) => {
         let newLongitude = '';
         let newLatitude = '';
 
-        if (selectedOption === '東京') {
+        if (selectedLocation === '東京') {
             newLongitude = '139.69';
             newLatitude = '35.68';
-        } else if (selectedOption === '大阪') {
+        } else if (selectedLocation === '大阪') {
             newLongitude = '135.31';
             newLatitude = '34.41';
-        } else if (selectedOption === '名古屋') {
+        } else if (selectedLocation === '名古屋') {
             newLongitude = '136.54';
             newLatitude = '35.10';
         }
 
         this.setState(
             {
-                selectedOption,
+                selectedLocation,
                 longitude: newLongitude,
                 latitude: newLatitude,
+            },
+            () => {
+                this.fetcheWeatherData();
+            }
+        );
+    }
+
+    // ドロップダウン選択時(月変更)
+    handleMonthChange = (selectedMonth) => {
+        this.setState(
+            {
+                selectedMonth
             },
             () => {
                 this.fetcheWeatherData();
@@ -201,6 +214,7 @@ class Weather extends Component {
         }
         
         const options1 = ['東京', '大阪', '名古屋'];
+        const options2 = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
         const temperatureMonth = this.findMean(this.mkarray24(weatherDataMonth.temperature));
         const humidityMonth = this.findMean(this.mkarray24(weatherDataMonth.relativeHumidity));
@@ -216,8 +230,8 @@ class Weather extends Component {
                 <div>
                     <Dropdown
                         options = {options1}
-                        selectedOption = {this.state.selectedOption}
-                        onOptionChange = {this.handleOptionChange}
+                        selectedLocation = {this.state.selectedLocation}
+                        onOptionChange = {this.handleLocationChange}
                     />
                 </div>
                 <div>
@@ -245,10 +259,19 @@ class Weather extends Component {
                     </table>
                     <br></br>
                     <br></br>
+                    <br></br>
+                </div>
+                <div>
+                    <Dropdown
+                        options = {options2}
+                        selectedLocation = {this.state.selectedMonth}
+                        onOptionChange = {this.handleMonthChange}
+                    />
+                    <br></br>
                 </div>
                 <div>
                     <table style={{ textAlign: 'center' }} width="300">
-                        <caption>2022年11月の平均気温</caption>
+                        <caption>2022年{this.state.selectedMonth}月の平均気温</caption>
                         <thead>
                             <tr>
                                 <th>上旬</th>
@@ -269,7 +292,7 @@ class Weather extends Component {
                 </div>
                 <div>
                     <table style={{ textAlign: 'center' }} width="300">
-                        <caption>2022年11月の天気</caption>
+                        <caption>2022年{this.state.selectedMonth}月の天気</caption>
                         <thead>
                             <tr>
                                 <th>日時</th>
