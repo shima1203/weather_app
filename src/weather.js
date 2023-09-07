@@ -7,7 +7,7 @@ class Weather extends Component {
         this.state = {
             weatherDataMonth: null,
             weatherDataToday: null,
-            selectedLocation: '',
+            selectedLocation: '東京',
             selectedMonth: 11,
             longitude:'139.69',
             latitude:'35.68',
@@ -20,6 +20,9 @@ class Weather extends Component {
     }
 
     fetcheWeatherData = () =>{
+        const apiUrl = process.env.REACT_APP_API_URL;
+        const apiKey = process.env.REACT_APP_API_KEY;
+
         const todayData = new Date();
         const year = todayData.getFullYear();
         const month = String(todayData.getMonth() + 1).padStart(2, '0');
@@ -28,8 +31,8 @@ class Weather extends Component {
         const selectedMonthSt = String(this.state.selectedMonth).padStart(2, '0');
         const selectedMonthStB = String(this.state.selectedMonth - 1).padStart(2, '0');
 
-        const apiUrl11m = process.env.REACT_APP_API_URL+`?geocode=${this.state.latitude},${this.state.longitude}&startDateTime=2022-${selectedMonthStB}-31T15Z&endDateTime=2022-${selectedMonthSt}-31T15Z&format=json&units=m&apiKey=`+process.env.REACT_APP_API_KEY;
-        const apiUrlToday = process.env.REACT_APP_API_URL+`?geocode=${this.state.latitude},${this.state.longitude}&startDateTime=${year}-${month}-${yesterday}T15Z&endDateTime=${year}-${month}-${today}T15Z&format=json&units=m&apiKey=`+process.env.REACT_APP_API_KEY;
+        const apiUrl11m = apiUrl+`?geocode=${this.state.latitude},${this.state.longitude}&startDateTime=2022-${selectedMonthStB}-31T15Z&endDateTime=2022-${selectedMonthSt}-31T15Z&format=json&units=m&apiKey=`+apiKey;
+        const apiUrlToday = apiUrl+`?geocode=${this.state.latitude},${this.state.longitude}&startDateTime=${year}-${month}-${yesterday}T15Z&endDateTime=${year}-${month}-${today}T15Z&format=json&units=m&apiKey=`+apiKey;
         
         // 11月の天気データ
         fetch(apiUrl11m)
@@ -214,7 +217,7 @@ class Weather extends Component {
         }
         
         const options1 = ['東京', '大阪', '名古屋'];
-        const options2 = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+        const options2 = [4, 5, 6, 7, 8, 9, 10, 11, 12];
 
         const temperatureMonth = this.findMean(this.mkarray24(weatherDataMonth.temperature));
         const humidityMonth = this.findMean(this.mkarray24(weatherDataMonth.relativeHumidity));
@@ -236,7 +239,7 @@ class Weather extends Component {
                 </div>
                 <div>
                     <table style={{ textAlign: 'center' }} width="300">
-                        <caption>本日の天気</caption>
+                        <caption>本日の{this.state.selectedLocation}の天気</caption>
                         <thead>
                             <tr>
                                 <th>時間</th>
