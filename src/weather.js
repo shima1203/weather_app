@@ -7,7 +7,6 @@ class Weather extends Component {
         this.state = {
             weatherDataMonth: null,
             weatherDataToday: null,
-            weatherDataYesterday: null,
             selectedOption: '',
             longitude:'139.69',
             latitude:'35.68',
@@ -20,14 +19,11 @@ class Weather extends Component {
         const year = todayData.getFullYear();
         const month = String(todayData.getMonth() + 1).padStart(2, '0');
         const today = String(todayData.getDate()).padStart(2, '0');
-        const tomorrow = String(todayData.getDate() + 1).padStart(2, '0');
         const yesterday = String(todayData.getDate() - 1).padStart(2, '0');
 
-        const apiUrlforec = 'https://api.weather.com/v3/wx/forecast/hourly/15day?geocode=35.65,135.79&format=json&units=m&language=jaJP&apiKey=7698370dea91420198370dea91720199';
-        const apiUrl11m = `https://api.weather.com/v3/wx/hod/r1/direct?geocode=${this.state.latitude},${this.state.longitude}&startDateTime=2022-11-01T00Z&endDateTime=2022-12-01T00Z&format=json&units=m&apiKey=7698370dea91420198370dea91720199`;
-        const apiUrlToday = `https://api.weather.com/v3/wx/hod/r1/direct?geocode=35.65,135.79&startDateTime=${year}-${month}-${today}T00Z&endDateTime=${year}-${month}-${tomorrow}T00Z&format=json&units=m&apiKey=7698370dea91420198370dea91720199`;
-        const apiUrlYesyerday = `https://api.weather.com/v3/wx/hod/r1/direct?geocode=35.65,135.79&startDateTime=${year}-${month}-${yesterday}T00Z&endDateTime=${year}-${month}-${today}T00Z&format=json&units=m&apiKey=7698370dea91420198370dea91720199`;
-
+        const apiUrl11m = `https://api.weather.com/v3/wx/hod/r1/direct?geocode=${this.state.latitude},${this.state.longitude}&startDateTime=2022-10-31T15Z&endDateTime=2022-11-31T15Z&format=json&units=m&apiKey=7698370dea91420198370dea91720199`;
+        const apiUrlToday = `https://api.weather.com/v3/wx/hod/r1/direct?geocode=${this.state.latitude},${this.state.longitude}&startDateTime=${year}-${month}-${yesterday}T15Z&endDateTime=${year}-${month}-${today}T15Z&format=json&units=m&apiKey=7698370dea91420198370dea91720199`;
+        
         // 11月のデータ
         fetch(apiUrl11m)
         .then((response) => {
@@ -45,23 +41,7 @@ class Weather extends Component {
         });
 
         // 今日の天気データ
-        // fetch(apiUrlToday)
-        // .then((response) => {
-        //     if (!response.ok) {
-        //         throw new Error('Network response was not ok');
-        //     }
-        //     return response.json();
-        // })
-        // .then((data) => {
-        //     this.setState({ weatherDataToday: data });
-        //     console.log('Weather Data Today:', data);
-        // })
-        // .catch((error) => {
-        //     this.setState({ error: error });
-        // });
-
-        // 昨日の天気データ
-        fetch(apiUrlYesyerday)
+        fetch(apiUrlToday)
         .then((response) => {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
@@ -69,8 +49,8 @@ class Weather extends Component {
             return response.json();
         })
         .then((data) => {
-            this.setState({ weatherDataYesterday: data });
-            console.log('Weather Data Yesterday:', data);
+            this.setState({ weatherDataToday: data });
+            console.log('Weather Data Today:', data);
         })
         .catch((error) => {
             this.setState({ error: error });
@@ -99,13 +79,23 @@ class Weather extends Component {
         });
 
         this.componentDidMount();
+        // 【要修正】一回遅れになってる
     }
         
     // 24ごとに区切って2次元配列にする
-    mkarray = (oneDArray) => {
+    mkarray24 = (oneDArray) => {
         const twoDArray = [];
         for (let i = 0; i < oneDArray.length; i+=24) {
             twoDArray.push(oneDArray.slice(i, i +24));
+        }
+        return twoDArray;
+    }
+
+    // 10ごとに区切って2次元配列にする
+    mkarray10 = (oneDArray) => {
+        const twoDArray = [];
+        for (let i = 0; i < 3; i+=1) {
+            twoDArray.push(oneDArray.slice(i*10, i*10 +10));
         }
         return twoDArray;
     }
@@ -193,7 +183,7 @@ class Weather extends Component {
 
 
     render() {
-        const { weatherDataMonth, error } = this.state;
+        const { weatherDataMonth, weatherDataToday, error } = this.state;
 
         const options1 = ['東京', '大阪', '名古屋'];
 
@@ -205,11 +195,15 @@ class Weather extends Component {
             return <div>Loading...</div>;
         }
 
-        const temperatureData = this.findMean(this.mkarray(weatherDataMonth.temperature));
-        const humidityData = this.findMean(this.mkarray(weatherDataMonth.relativeHumidity));
-        const weathericData = this.changeWeatherCode(this.findMost(this.mkarray(weatherDataMonth.iconCode)));
-        const weatherCount = this.countWeather(weathericData);
-        
+        const temperatureMonth = this.findMean(this.mkarray24(weatherDataMonth.temperature));
+        const humidityMonth = this.findMean(this.mkarray24(weatherDataMonth.relativeHumidity));
+        const weatherMonth = this.changeWeatherCode(this.findMost(this.mkarray24(weatherDataMonth.iconCode)));
+        const weatherCountMonth = this.countWeather(weatherMonth);
+        const temperatureToday = weatherDataToday.temperature;
+        const humidityToday = weatherDataToday.relativeHumidity;
+        const weatherToday =  this.changeWeatherCode(weatherDataToday.iconCode);
+        const temperature10d = this.findMean(this.mkarray10(temperatureMonth));
+
         return (
             <div>
                 <div>
@@ -218,10 +212,55 @@ class Weather extends Component {
                         selectedOption = {this.state.selectedOption}
                         onOptionChange = {this.handleOptionChange}
                     />
-                    {/* <p>{this.state.selectedOption}</p> */}
                 </div>
                 <div>
                     <table>
+                        <caption>本日の天気</caption>
+                        <thead>
+                            <tr>
+                                <th>time</th>
+                                <th>temparature</th>
+                                <th>humidity</th>
+                                <th>weather</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {temperatureToday.map((temp, time) => (
+                                <tr key={time}>
+                                    <td>{time}</td>
+                                    <td>{temp}</td>
+                                    <td>{humidityToday[time]}</td>
+                                    <td>{weatherToday[time]}</td>
+                                </tr>
+                            )
+                        )}
+                        </tbody>
+                    </table>
+                    <br></br>
+                </div>
+                <div>
+                    <table>
+                        <caption>2022年11月の平均気温</caption>
+                        <thead>
+                            <tr>
+                                <th>上旬</th>
+                                <th>中旬</th>
+                                <th>下旬</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{temperature10d[0]}</td>
+                                <td>{temperature10d[1]}</td>
+                                <td>{temperature10d[2]}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <br></br>
+                </div>
+                <div>
+                    <table>
+                        <caption>2022年11月の天気</caption>
                         <thead>
                             <tr>
                                 <th>data</th>
@@ -231,12 +270,12 @@ class Weather extends Component {
                             </tr>
                         </thead>
                         <tbody>
-                            {temperatureData.map((temp, date) => (
+                            {temperatureMonth.map((temp, date) => (
                                 <tr key={date + 1}>
                                     <td>{date + 1}</td>
                                     <td>{temp}</td>
-                                    <td>{humidityData[date]}</td>
-                                    <td>{weathericData[date]}</td>
+                                    <td>{humidityMonth[date]}</td>
+                                    <td>{weatherMonth[date]}</td>
                                 </tr>
                             )
                         )}
@@ -245,9 +284,9 @@ class Weather extends Component {
                 </div>
                 <div>
                 <ul>
-                    {Object.keys(weatherCount).map((count, index) => (
+                    {Object.keys(weatherCountMonth).map((count, index) => (
                         <li key={index}>
-                            {count}: {weatherCount[count]}
+                            {count}: {weatherCountMonth[count]}
                         </li>
                     ))}
                 </ul>
