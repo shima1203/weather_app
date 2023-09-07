@@ -15,14 +15,19 @@ class Weather extends Component {
     }
 
     componentDidMount() {
+        this.fetcheWeatherData();
+    }
+
+    fetcheWeatherData = () =>{
         const todayData = new Date();
         const year = todayData.getFullYear();
         const month = String(todayData.getMonth() + 1).padStart(2, '0');
         const today = String(todayData.getDate()).padStart(2, '0');
         const yesterday = String(todayData.getDate() - 1).padStart(2, '0');
+        console.log(process.env.REACT_APP_API_URL);
 
-        const apiUrl11m = `https://api.weather.com/v3/wx/hod/r1/direct?geocode=${this.state.latitude},${this.state.longitude}&startDateTime=2022-10-31T15Z&endDateTime=2022-11-31T15Z&format=json&units=m&apiKey=7698370dea91420198370dea91720199`;
-        const apiUrlToday = `https://api.weather.com/v3/wx/hod/r1/direct?geocode=${this.state.latitude},${this.state.longitude}&startDateTime=${year}-${month}-${yesterday}T15Z&endDateTime=${year}-${month}-${today}T15Z&format=json&units=m&apiKey=7698370dea91420198370dea91720199`;
+        const apiUrl11m = process.env.REACT_APP_API_URL+`?geocode=${this.state.latitude},${this.state.longitude}&startDateTime=2022-10-31T15Z&endDateTime=2022-11-31T15Z&format=json&units=m&apiKey=`+process.env.REACT_APP_API_KEY;
+        const apiUrlToday = process.env.REACT_APP_API_URL+`?geocode=${this.state.latitude},${this.state.longitude}&startDateTime=${year}-${month}-${yesterday}T15Z&endDateTime=${year}-${month}-${today}T15Z&format=json&units=m&apiKey=`+process.env.REACT_APP_API_KEY;
         
         // 11月のデータ
         fetch(apiUrl11m)
@@ -72,14 +77,16 @@ class Weather extends Component {
             newLatitude = '35.10';
         }
 
-        this.setState({
-            selectedOption,
-            longitude: newLongitude,
-            latitude: newLatitude,
-        });
-
-        this.componentDidMount();
-        // 【要修正】一回遅れになってる
+        this.setState(
+            {
+                selectedOption,
+                longitude: newLongitude,
+                latitude: newLatitude,
+            },
+            () => {
+                this.fetcheWeatherData();
+            }
+        );
     }
         
     // 24ごとに区切って2次元配列にする
@@ -149,16 +156,16 @@ class Weather extends Component {
         const changedWeatherArr = [];
         for(const weather of weatherArr){
             if((weather >= 0 && weather <= 12) || (weather >= 37 && weather <= 40) || (weather === 35 || weather === 45 || weather === 47)){
-                changedWeatherArr.push("rainy");
+                changedWeatherArr.push("雨");
             }
             else if((weather >= 19 && weather <= 24) || (weather >= 26 && weather <= 30)){
-                changedWeatherArr.push("cloudy");
+                changedWeatherArr.push("曇");
             }
             else if((weather >= 31 && weather <= 34) || (weather == 36)){
-                changedWeatherArr.push("sunny");
+                changedWeatherArr.push("晴れ");
             }
             else if((weather >= 13 && weather <= 18) || (weather >= 41 && weather <= 43) || (weather === 25 || weather === 46)){
-                changedWeatherArr.push("snowy");
+                changedWeatherArr.push("雪");
             }
             else{
                 changedWeatherArr.push("error");
@@ -185,8 +192,6 @@ class Weather extends Component {
     render() {
         const { weatherDataMonth, weatherDataToday, error } = this.state;
 
-        const options1 = ['東京', '大阪', '名古屋'];
-
         if (error) {
             return <div>Error: {error.message}</div>;
         }
@@ -194,6 +199,8 @@ class Weather extends Component {
         if (!weatherDataMonth) {
             return <div>Loading...</div>;
         }
+        
+        const options1 = ['東京', '大阪', '名古屋'];
 
         const temperatureMonth = this.findMean(this.mkarray24(weatherDataMonth.temperature));
         const humidityMonth = this.findMean(this.mkarray24(weatherDataMonth.relativeHumidity));
@@ -214,22 +221,22 @@ class Weather extends Component {
                     />
                 </div>
                 <div>
-                    <table>
+                    <table style={{ textAlign: 'center' }} width="300">
                         <caption>本日の天気</caption>
                         <thead>
                             <tr>
-                                <th>time</th>
-                                <th>temparature</th>
-                                <th>humidity</th>
-                                <th>weather</th>
+                                <th>時間</th>
+                                <th>気温</th>
+                                <th>湿度</th>
+                                <th>天気</th>
                             </tr>
                         </thead>
                         <tbody>
                             {temperatureToday.map((temp, time) => (
                                 <tr key={time}>
-                                    <td>{time}</td>
-                                    <td>{temp}</td>
-                                    <td>{humidityToday[time]}</td>
+                                    <td>{time}:20</td>
+                                    <td>{temp}℃</td>
+                                    <td>{humidityToday[time]}％</td>
                                     <td>{weatherToday[time]}</td>
                                 </tr>
                             )
@@ -237,9 +244,10 @@ class Weather extends Component {
                         </tbody>
                     </table>
                     <br></br>
+                    <br></br>
                 </div>
                 <div>
-                    <table>
+                    <table style={{ textAlign: 'center' }} width="300">
                         <caption>2022年11月の平均気温</caption>
                         <thead>
                             <tr>
@@ -250,31 +258,32 @@ class Weather extends Component {
                         </thead>
                         <tbody>
                             <tr>
-                                <td>{temperature10d[0]}</td>
-                                <td>{temperature10d[1]}</td>
-                                <td>{temperature10d[2]}</td>
+                                <td>{temperature10d[0]}℃</td>
+                                <td>{temperature10d[1]}℃</td>
+                                <td>{temperature10d[2]}℃</td>
                             </tr>
                         </tbody>
                     </table>
                     <br></br>
+                    <br></br>
                 </div>
                 <div>
-                    <table>
+                    <table style={{ textAlign: 'center' }} width="300">
                         <caption>2022年11月の天気</caption>
                         <thead>
                             <tr>
-                                <th>data</th>
-                                <th>temparature</th>
-                                <th>humidity</th>
-                                <th>weather</th>
+                                <th>日時</th>
+                                <th>気温</th>
+                                <th>湿度</th>
+                                <th>天気</th>
                             </tr>
                         </thead>
                         <tbody>
                             {temperatureMonth.map((temp, date) => (
                                 <tr key={date + 1}>
                                     <td>{date + 1}</td>
-                                    <td>{temp}</td>
-                                    <td>{humidityMonth[date]}</td>
+                                    <td>{temp}℃</td>
+                                    <td>{humidityMonth[date]}％</td>
                                     <td>{weatherMonth[date]}</td>
                                 </tr>
                             )
